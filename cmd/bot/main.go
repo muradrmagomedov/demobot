@@ -6,12 +6,15 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
+	"github.com/muradrmagomedov/bot/internal/service/product"
 )
 
 func main() {
 	//Загружаем env файл
 	godotenv.Load("../../.env")
 	token := os.Getenv("TOKEN")
+
+	service := product.NewService()
 
 	//создаем объект бота и подключаемся по токену
 	bot, err := tgbotapi.NewBotAPI(token)
@@ -36,6 +39,8 @@ func main() {
 			switch update.Message.Command() {
 			case "help":
 				helpCommand(bot, update.Message)
+			case "list":
+				listCommand(bot, update.Message, service)
 			default:
 				defaultAnswer(bot, update.Message)
 			}
@@ -44,7 +49,17 @@ func main() {
 }
 
 func helpCommand(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
-	reply := tgbotapi.NewMessage(msg.Chat.ID, "You need some help?")
+	reply := tgbotapi.NewMessage(msg.Chat.ID, "/help - help\n"+"/list - product list")
+	bot.Send(reply)
+}
+
+func listCommand(bot *tgbotapi.BotAPI, msg *tgbotapi.Message, service *product.Service) {
+	products := service.List()
+	productsMsgText := "Here all your products\n\n"
+	for _, product := range products {
+		productsMsgText += product.Title + "\n"
+	}
+	reply := tgbotapi.NewMessage(msg.Chat.ID, productsMsgText)
 	bot.Send(reply)
 }
 
