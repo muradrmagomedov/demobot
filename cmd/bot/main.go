@@ -32,10 +32,24 @@ func main() {
 		if update.Message != nil { // If we got a message
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "You wrote: "+update.Message.Text)
-			msg.ReplyToMessageID = update.Message.MessageID
-
-			bot.Send(msg)
+			//обработка команды help
+			switch update.Message.Command() {
+			case "help":
+				helpCommand(bot, update.Message)
+			default:
+				defaultAnswer(bot, update.Message)
+			}
 		}
 	}
+}
+
+func helpCommand(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+	reply := tgbotapi.NewMessage(msg.Chat.ID, "You need some help?")
+	bot.Send(reply)
+}
+
+func defaultAnswer(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+	reply := tgbotapi.NewMessage(msg.Chat.ID, msg.Text)
+	reply.ReplyToMessageID = msg.MessageID
+	bot.Send(reply)
 }
